@@ -32,6 +32,14 @@ class Creature extends Card {
         super(...items);
     }
 
+    get currentPower() {
+        return this._currentPower || 0;
+    }
+
+    set currentPower(value) {
+        this._currentPower = Math.min(this.maxPower, value);
+    }
+
     getDescriptions() {
         return [getCreatureDescription(this), ...super.getDescriptions()];
     }
@@ -40,8 +48,8 @@ class Creature extends Card {
 
 // Основа для утки.
 class Duck extends Creature {
-    constructor() {
-        super("Мирная утка", 2);
+    constructor(name = "Мирная утка", power = 2) {
+        super(name, power);
     }
 
     quacks() {
@@ -143,16 +151,42 @@ class Lad extends Dog {
     }
 }
 
+class Brewer extends Duck {
+    constructor() {
+        super("Пивовар", 2);
+    }
+
+    doBeforeAttack(gameContext, continuation) {
+        for (const card of gameContext.currentPlayer.table.concat(gameContext.oppositePlayer.table)) {
+            if (isDuck(card)) {
+                this.view.signalHeal(() => card);
+                card.maxPower += 1;
+                card.currentPower = card.currentPower + 2;
+                card.updateView();
+            }
+        }
+        super.doBeforeAttack(gameContext, continuation);
+    }
+}
+
+class PseudoDuck extends Dog {
+    constructor() {
+        super("Псевдоутка", 3);
+    }
+
+    quacks() {}
+    swims() {}
+}
+
 const seriffStartDeck = [
     new Duck(),
-    new Duck(),
-    new Duck(),
+    new Brewer(),
 ];
 const banditStartDeck = [
-    new Lad(),
-    new Lad(),
+    new Dog(),
+    new PseudoDuck(),
+    new Dog(),
 ];
-
 
 // Создание игры.
 const game = new Game(seriffStartDeck, banditStartDeck);
