@@ -43,9 +43,11 @@ class Duck extends Creature {
     constructor() {
         super("Мирная утка", 2);
     }
+
     quacks() {
         console.log('quack');
     }
+
     swims() {
         console.log('float: both;');
     }
@@ -69,18 +71,44 @@ class Trasher extends Dog {
     }
 
     getDescriptions() {
-        return ["Уменьшает урон на 1", ...super.getDescriptions()];
+        return ["Уменьшает получаемый урон на 1", ...super.getDescriptions()];
     }
 }
 
+
+class Gatling extends Dog {
+    constructor() {
+        super('Гатлинг', 6);
+    }
+
+    attack(gameContext, continuation) {
+        const taskQueue = new TaskQueue();
+        const oppositePlayerTable = gameContext.oppositePlayer.table;
+
+        for (const oppositeCard of oppositePlayerTable) {
+            taskQueue.push(onDone =>
+                this.view.showAttack(() => this.dealDamageToCreature(2, oppositeCard, gameContext, onDone))
+            );
+        }
+
+        taskQueue.continueWith(continuation);
+    }
+
+    getDescriptions() {
+        return ["Наносит 2 урона всем картам противника", ...super.getDescriptions()];
+    }
+}
 
 const seriffStartDeck = [
     new Duck(),
     new Duck(),
     new Duck(),
+    new Gatling(),
 ];
 const banditStartDeck = [
     new Trasher(),
+    new Dog(),
+    new Dog(),
 ];
 
 
